@@ -37,22 +37,23 @@ class FeedbackController extends Controller
      */
     public function show(Feedback $feedback)
     {
-        //
+        return $feedback;
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Feedback $feedback)
-    {
+    //public function update(Request $request, Feedback $feedback)
+    //{
         //
-    }
+    //}
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Feedback $feedback)
     {
-        //
+        $feedback->delete();
+        return response()->noContent();
     }
 }
