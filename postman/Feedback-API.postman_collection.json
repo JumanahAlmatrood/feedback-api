@@ -1,0 +1,205 @@
+{
+  "info": {
+    "_postman_id": "270ea8f0-9e08-4656-abb9-e4dc13a48d65",
+    "name": "Feedback API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58718796",
+    "_collection_link": "https://go.postman.co/collection/58718796-270ea8f0-9e08-4656-abb9-e4dc13a48d65?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "List feedback",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/feedback",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "feedback"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List feedback (page 2)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/feedback?page=2",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "feedback"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get single feedback",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/feedback/10",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "feedback",
+            "10"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete feedback",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/feedback/20",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "feedback",
+            "20"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create feedback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "   {\n       \"name\": \"Sara\",\n       \"email\": \"sara@example.com\",\n       \"rating\": 5,\n       \"category\": \"general\",\n       \"comment\": \"Great service\"\n   }\n   ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/feedback",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "feedback"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create feedback (invalid rating)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "   {\n       \"name\": \"Sara\",\n       \"email\": \"sara@example.com\",\n       \"rating\": 7,\n       \"category\": \"general\",\n       \"comment\": \"Great service\"\n   }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/feedback",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "feedback"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
