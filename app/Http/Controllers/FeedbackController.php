@@ -12,7 +12,7 @@ class FeedbackController extends Controller
      */
     public function index()
     {
-        return Feedback::latest()->paginate(15);
+        return Feedback::latest('id')->paginate(15);
     }
 
     /**
