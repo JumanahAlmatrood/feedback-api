@@ -18,11 +18,20 @@ class FeedbackController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+        public function store(Request $request)
     {
-        //
-    }
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email',
+            'rating' => 'required|integer|between:1,5',
+            'category' => 'required|string|max:100',
+            'comment' => 'nullable|string',
+        ]);
 
+        $feedback = Feedback::create($data);
+
+        return response()->json($feedback, 201);
+    }
     /**
      * Display the specified resource.
      */
