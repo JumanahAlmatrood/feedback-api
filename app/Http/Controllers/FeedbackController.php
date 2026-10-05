@@ -23,6 +23,29 @@ class FeedbackController extends Controller
             ->latest('id')
             ->paginate(15);
     }
+        public function stats()
+    {
+        $ratings = Feedback::query()
+            ->selectRaw('rating, COUNT(*) as count')
+            ->groupBy('rating')
+            ->pluck('count', 'rating');
+
+        $categories = Feedback::query()
+            ->selectRaw('category, COUNT(*) as count')
+            ->groupBy('category')
+            ->orderByDesc('count')
+            ->get();
+
+        return response()->json([
+            'total' => Feedback::count(),
+            'average_rating' => round((float) Feedback::avg('rating'), 2),
+            'rating_distribution' => collect(range(1, 5))->map(fn ($rating) => [
+                'rating' => $rating,
+                'count' => (int) ($ratings[$rating] ?? 0),
+            ]),
+            'by_category' => $categories,
+        ]);
+    }
 
     /**
      * Store a newly created resource in storage.
