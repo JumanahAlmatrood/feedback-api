@@ -1,0 +1,1 @@
+export const CATEGORIES = ['general', 'support', 'product', 'bug'];

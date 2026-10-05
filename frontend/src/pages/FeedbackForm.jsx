@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { apiFetch } from '../api';
+import { CATEGORIES } from '../categories';
 
-const CATEGORIES = ['general', 'support', 'product', 'bug'];
 const EMPTY = { name: '', email: '', rating: '', category: '', comment: '' };
 
 function validate(values) {

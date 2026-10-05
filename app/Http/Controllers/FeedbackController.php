@@ -10,9 +10,18 @@ class FeedbackController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+        public function index(Request $request)
     {
-        return Feedback::latest('id')->paginate(15);
+        $filters = $request->validate([
+            'category' => 'nullable|string|max:100',
+            'rating' => 'nullable|integer|between:1,5',
+        ]);
+
+        return Feedback::query()
+            ->when($filters['category'] ?? null, fn ($query, $category) => $query->where('category', $category))
+            ->when($filters['rating'] ?? null, fn ($query, $rating) => $query->where('rating', $rating))
+            ->latest('id')
+            ->paginate(15);
     }
 
     /**
