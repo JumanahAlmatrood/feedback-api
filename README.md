@@ -1,11 +1,12 @@
 # Feedback API
 
-A simple REST API for collecting feedback, built with Laravel.
+A Laravel REST API for collecting feedback, with a React frontend for submitting feedback, browsing it, and viewing insights.
 
 ## Requirements
 
 - PHP 8.3 or newer
 - Composer
+- Node.js 20 or newer
 
 ## Setup
 
@@ -29,7 +30,8 @@ The API runs at `http://127.0.0.1:8000`.
 | Method | URL | Description |
 |---|---|---|
 | POST | `/api/feedback` | Submit new feedback |
-| GET | `/api/feedback` | List feedback, 15 per page (`?page=2`) |
+| GET | `/api/feedback` | List feedback, 15 per page (`?page=2`). Optional filters: `?category=bug&rating=5` |
+| GET | `/api/feedback/stats` | Total count, average rating, rating distribution, and count per category |
 | GET | `/api/feedback/{id}` | Get a single feedback entry |
 | DELETE | `/api/feedback/{id}` | Delete a feedback entry |
 
@@ -43,11 +45,31 @@ The API runs at `http://127.0.0.1:8000`.
 | category | required, text |
 | comment | optional, text |
 
+## Frontend
+
+The React app is in the `frontend` folder. The Laravel server must be running at the same time.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`.
+
+| Page | What it does |
+|---|---|
+| Submit | Feedback form with client-side validation and success/error messages |
+| Feedback | Feedback list with filters by category and rating |
+| Insights | Total count, average rating, rating distribution chart, and count per category |
+
+The stats are calculated in the database by the `/api/feedback/stats` endpoint, not in the frontend.
+
 ## Testing
 
 A Postman collection is in the `postman` folder. Import it into Postman and run the requests while the server is running.
 
 ## Notes
 
-- The task did not list allowed values for `category`, so it accepts any text.
+- The task did not list allowed values for `category`, so the API accepts any text. The form offers four: general, support, product, bug.
 - The seeder creates 50 fake entries for testing.
