@@ -1,20 +1,27 @@
-import { useEffect, useState } from 'react';
-import { apiFetch } from './api';
+import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
+import FeedbackForm from './pages/FeedbackForm';
+import FeedbackList from './pages/FeedbackList';
+import Insights from './pages/Insights';
+import './App.css';
 
 function App() {
-  const [total, setTotal] = useState(null);
-  const [error, setError] = useState('');
+  return (
+    <BrowserRouter>
+      <nav className="nav">
+        <NavLink to="/">Submit</NavLink>
+        <NavLink to="/feedback">Feedback</NavLink>
+        <NavLink to="/insights">Insights</NavLink>
+      </nav>
 
-  useEffect(() => {
-    apiFetch('/feedback')
-      .then((data) => setTotal(data.total))
-      .catch((err) => setError(err.message));
-  }, []);
-
-  if (error) return <p>Could not reach the API: {error}</p>;
-  if (total === null) return <p>Loading...</p>;
-
-  return <p>Connected. The API has {total} feedback entries.</p>;
+      <main className="container">
+        <Routes>
+          <Route path="/" element={<FeedbackForm />} />
+          <Route path="/feedback" element={<FeedbackList />} />
+          <Route path="/insights" element={<Insights />} />
+        </Routes>
+      </main>
+    </BrowserRouter>
+  );
 }
 
 export default App;
