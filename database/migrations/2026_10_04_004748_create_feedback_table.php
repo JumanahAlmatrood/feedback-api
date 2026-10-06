@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email');
             $table->unsignedTinyInteger('rating');
             $table->string('category');
-            $table->text('comment')->nullable();       
+            $table->text('comment')->nullable();
             $table->timestamps();
         });
     }

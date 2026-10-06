@@ -206,7 +206,7 @@ class FeedbackApiTest extends TestCase
             ->assertOk()
             ->assertExactJson(['general', 'support', 'product', 'bug']);
     }
-        // ---------- GET /api/feedback/export ----------
+    // ---------- GET /api/feedback/export ----------
 
     public function test_feedback_can_be_exported_as_csv(): void
     {
@@ -243,7 +243,7 @@ class FeedbackApiTest extends TestCase
         $this->assertStringContainsString("'=HYPERLINK", $csv);
         $this->assertStringContainsString("'+1+1", $csv);
     }
-    
+
     // ---------- Malicious input ----------
 
     public function test_script_tags_are_stored_and_returned_as_plain_text(): void
