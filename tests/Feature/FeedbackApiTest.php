@@ -24,6 +24,8 @@ class FeedbackApiTest extends TestCase
         ], $overrides);
     }
 
+    // ---------- POST /api/feedback ----------
+
     public function test_valid_feedback_is_stored(): void
     {
         $this->postJson('/api/feedback', $this->validPayload())->assertCreated();
@@ -31,11 +33,35 @@ class FeedbackApiTest extends TestCase
         $this->assertDatabaseHas('feedback', ['email' => 'sara@example.com', 'category' => 'support']);
     }
 
-    public function test_categories_endpoint_lists_allowed_categories(): void
+    public function test_required_fields_are_required(): void
     {
-        $this->getJson('/api/feedback/categories')
-            ->assertOk()
-            ->assertExactJson(['general', 'support', 'product', 'bug']);
+        $this->postJson('/api/feedback', [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['name', 'email', 'rating', 'category']);
+    }
+
+    public function test_rating_must_be_a_whole_number_from_one_to_five(): void
+    {
+        foreach ([0, 6, 2.5, 'abc'] as $rating) {
+            $this->postJson('/api/feedback', $this->validPayload(['rating' => $rating]))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('rating');
+        }
+
+        $this->assertDatabaseCount('feedback', 0);
+    }
+
+    public function test_invalid_email_is_rejected(): void
+    {
+        $this->postJson('/api/feedback', $this->validPayload(['email' => 'not-an-email']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
+    }
+
+    public function test_comment_is_optional(): void
+    {
+        $this->postJson('/api/feedback', $this->validPayload(['comment' => null]))
+            ->assertCreated();
     }
 
     public function test_unknown_category_is_rejected(): void
@@ -45,13 +71,6 @@ class FeedbackApiTest extends TestCase
             ->assertJsonValidationErrors('category');
 
         $this->assertDatabaseCount('feedback', 0);
-    }
-
-    public function test_unknown_category_filter_is_rejected(): void
-    {
-        $this->getJson('/api/feedback?category=anything')
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('category');
     }
 
     public function test_text_fields_have_length_limits(): void
@@ -83,6 +102,112 @@ class FeedbackApiTest extends TestCase
 
         $this->postJson('/api/feedback', $this->validPayload())->assertTooManyRequests();
     }
+
+    // ---------- GET /api/feedback ----------
+
+    public function test_feedback_list_is_paginated(): void
+    {
+        Feedback::factory(20)->create();
+
+        $this->getJson('/api/feedback')
+            ->assertOk()
+            ->assertJsonCount(15, 'data')
+            ->assertJsonPath('total', 20)
+            ->assertJsonPath('last_page', 2);
+
+        $this->getJson('/api/feedback?page=2')
+            ->assertOk()
+            ->assertJsonCount(5, 'data');
+    }
+
+    public function test_feedback_list_can_be_filtered(): void
+    {
+        Feedback::factory(3)->create(['category' => 'bug', 'rating' => 5]);
+        Feedback::factory(2)->create(['category' => 'bug', 'rating' => 1]);
+        Feedback::factory(4)->create(['category' => 'general', 'rating' => 5]);
+
+        $this->getJson('/api/feedback?category=bug')->assertOk()->assertJsonPath('total', 5);
+        $this->getJson('/api/feedback?rating=5')->assertOk()->assertJsonPath('total', 7);
+        $this->getJson('/api/feedback?category=bug&rating=5')->assertOk()->assertJsonPath('total', 3);
+    }
+
+    public function test_unknown_category_filter_is_rejected(): void
+    {
+        $this->getJson('/api/feedback?category=anything')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('category');
+    }
+
+    public function test_invalid_filters_are_rejected(): void
+    {
+        $this->getJson('/api/feedback?rating=9')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('rating');
+
+        $this->getJson('/api/feedback?page=0')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('page');
+    }
+
+    // ---------- GET /api/feedback/{id} ----------
+
+    public function test_single_feedback_can_be_shown(): void
+    {
+        $feedback = Feedback::factory()->create(['name' => 'Noura']);
+
+        $this->getJson("/api/feedback/{$feedback->id}")
+            ->assertOk()
+            ->assertJsonPath('id', $feedback->id)
+            ->assertJsonPath('name', 'Noura');
+    }
+
+    public function test_missing_feedback_returns_not_found(): void
+    {
+        $this->getJson('/api/feedback/999')->assertNotFound();
+    }
+
+    // ---------- DELETE /api/feedback/{id} ----------
+
+    public function test_feedback_can_be_deleted(): void
+    {
+        $feedback = Feedback::factory()->create();
+
+        $this->deleteJson("/api/feedback/{$feedback->id}")->assertNoContent();
+
+        $this->assertDatabaseMissing('feedback', ['id' => $feedback->id]);
+    }
+
+    public function test_deleting_missing_feedback_returns_not_found(): void
+    {
+        $this->deleteJson('/api/feedback/999')->assertNotFound();
+    }
+
+    // ---------- GET /api/feedback/stats and /categories ----------
+
+    public function test_stats_are_calculated(): void
+    {
+        Feedback::factory(2)->create(['rating' => 5, 'category' => 'bug']);
+        Feedback::factory()->create(['rating' => 1, 'category' => 'general']);
+
+        $this->getJson('/api/feedback/stats')
+            ->assertOk()
+            ->assertJsonPath('total', 3)
+            ->assertJsonPath('average_rating', 3.67)
+            ->assertJsonPath('rating_distribution.0.count', 1)
+            ->assertJsonPath('rating_distribution.2.count', 0)
+            ->assertJsonPath('rating_distribution.4.count', 2)
+            ->assertJsonPath('by_category.0.category', 'bug')
+            ->assertJsonPath('by_category.0.count', 2);
+    }
+
+    public function test_categories_endpoint_lists_allowed_categories(): void
+    {
+        $this->getJson('/api/feedback/categories')
+            ->assertOk()
+            ->assertExactJson(['general', 'support', 'product', 'bug']);
+    }
+
+    // ---------- Privacy and seeding ----------
 
     public function test_emails_are_never_returned(): void
     {
