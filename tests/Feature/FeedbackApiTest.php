@@ -206,7 +206,23 @@ class FeedbackApiTest extends TestCase
             ->assertOk()
             ->assertExactJson(['general', 'support', 'product', 'bug']);
     }
+    // ---------- Malicious input ----------
 
+    public function test_script_tags_are_stored_and_returned_as_plain_text(): void
+    {
+        $payload = '<script>alert("xss")</script>';
+
+        $this->postJson('/api/feedback', $this->validPayload(['comment' => $payload]))
+            ->assertCreated()
+            ->assertJsonPath('comment', $payload);
+
+        $this->assertDatabaseHas('feedback', ['comment' => $payload]);
+
+        $this->getJson('/api/feedback')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/json')
+            ->assertJsonPath('data.0.comment', $payload);
+    }
     // ---------- Privacy and seeding ----------
 
     public function test_emails_are_never_returned(): void
