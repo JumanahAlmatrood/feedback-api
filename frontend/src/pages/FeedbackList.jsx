@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../api';
-import { CATEGORIES } from '../categories';
+import { useCategories } from '../categories';
 
 function FeedbackList() {
   const [filters, setFilters] = useState({ category: '', rating: '' });
   const [page, setPage] = useState(1);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const { categories, error: categoriesError } = useCategories();
 
   useEffect(() => {
     const params = new URLSearchParams({ page });
@@ -50,7 +51,7 @@ function FeedbackList() {
             onChange={handleFilterChange}
           >
             <option value="">All categories</option>
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
@@ -76,6 +77,8 @@ function FeedbackList() {
         </div>
       </div>
 
+      {categoriesError && <p className="alert alert-error">{categoriesError}</p>}
+
       {error && <p className="alert alert-error">{error}</p>}
 
       {!error && !result && <p className="muted">Loading...</p>}
@@ -98,7 +101,6 @@ function FeedbackList() {
                   <span className="badge">{item.rating} / 5</span>
                   <span className="badge badge-muted">{item.category}</span>
                 </div>
-                <p className="muted">{item.email}</p>
                 {item.comment && <p>{item.comment}</p>}
               </li>
             ))}

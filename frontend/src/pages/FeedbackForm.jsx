@@ -1,22 +1,35 @@
 import { useState } from 'react';
 import { apiFetch } from '../api';
-import { CATEGORIES } from '../categories';
+import { useCategories } from '../categories';
 
 const EMPTY = { name: '', email: '', rating: '', category: '', comment: '' };
+
+// Must match the limits in FeedbackController::store.
+const MAX = { name: 100, email: 254, comment: 1000 };
 
 function validate(values) {
   const errors = {};
 
-  if (!values.name.trim()) errors.name = 'Name is required.';
+  if (!values.name.trim()) {
+    errors.name = 'Name is required.';
+  } else if (values.name.length > MAX.name) {
+    errors.name = `Name must be ${MAX.name} characters or fewer.`;
+  }
 
   if (!values.email.trim()) {
     errors.email = 'Email is required.';
   } else if (!/^\S+@\S+\.\S+$/.test(values.email)) {
     errors.email = 'Enter a valid email address.';
+  } else if (values.email.length > MAX.email) {
+    errors.email = `Email must be ${MAX.email} characters or fewer.`;
   }
 
   if (!values.rating) errors.rating = 'Choose a rating.';
   if (!values.category) errors.category = 'Choose a category.';
+
+  if (values.comment.length > MAX.comment) {
+    errors.comment = `Comment must be ${MAX.comment} characters or fewer.`;
+  }
 
   return errors;
 }
@@ -26,6 +39,7 @@ function FeedbackForm() {
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: '', message: '' });
   const [sending, setSending] = useState(false);
+  const { categories, error: categoriesError } = useCategories();
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -72,6 +86,8 @@ function FeedbackForm() {
     <>
       <h1>Submit feedback</h1>
 
+      {categoriesError && <p className="alert alert-error">{categoriesError}</p>}
+
       {status.message && (
         <p className={`alert alert-${status.type}`} role="status">
           {status.message}
@@ -84,6 +100,7 @@ function FeedbackForm() {
           <input
             id="name"
             name="name"
+            maxLength={MAX.name}
             value={values.name}
             onChange={handleChange}
             className={errors.name ? 'invalid' : ''}
@@ -97,6 +114,7 @@ function FeedbackForm() {
             id="email"
             name="email"
             type="email"
+            maxLength={MAX.email}
             value={values.email}
             onChange={handleChange}
             className={errors.email ? 'invalid' : ''}
@@ -133,7 +151,7 @@ function FeedbackForm() {
             className={errors.category ? 'invalid' : ''}
           >
             <option value="">Choose a category</option>
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
@@ -148,9 +166,15 @@ function FeedbackForm() {
             id="comment"
             name="comment"
             rows="4"
+            maxLength={MAX.comment}
             value={values.comment}
             onChange={handleChange}
+            className={errors.comment ? 'invalid' : ''}
           />
+          <p className="field-hint">
+            {values.comment.length} / {MAX.comment}
+          </p>
+          {errors.comment && <p className="field-error">{errors.comment}</p>}
         </div>
 
         <button className="button" type="submit" disabled={sending}>

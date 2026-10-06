@@ -16,8 +16,7 @@ cd feedback-api
 composer install
 cp .env.example .env
 php artisan key:generate
-php artisan migrate
-php artisan db:seed --class=FeedbackSeeder
+php artisan migrate --seed
 php artisan serve
 ```
 
@@ -29,8 +28,9 @@ The API runs at `http://127.0.0.1:8000`.
 
 | Method | URL | Description |
 |---|---|---|
-| POST | `/api/feedback` | Submit new feedback |
+| POST | `/api/feedback` | Submit new feedback (limited to 10 requests per minute) |
 | GET | `/api/feedback` | List feedback, 15 per page (`?page=2`). Optional filters: `?category=bug&rating=5` |
+| GET | `/api/feedback/categories` | The list of allowed categories |
 | GET | `/api/feedback/stats` | Total count, average rating, rating distribution, and count per category |
 | GET | `/api/feedback/{id}` | Get a single feedback entry |
 | DELETE | `/api/feedback/{id}` | Delete a feedback entry |
@@ -39,11 +39,13 @@ The API runs at `http://127.0.0.1:8000`.
 
 | Field | Rules |
 |---|---|
-| name | required, text |
-| email | required, valid email |
+| name | required, text, up to 100 characters |
+| email | required, valid email, up to 254 characters |
 | rating | required, whole number from 1 to 5 |
-| category | required, text |
-| comment | optional, text |
+| category | required, one of: `general`, `support`, `product`, `bug` |
+| comment | optional, text, up to 1000 characters |
+
+Emails are stored for follow-up but are never returned by any endpoint.
 
 ## Frontend
 
@@ -67,9 +69,13 @@ The stats are calculated in the database by the `/api/feedback/stats` endpoint, 
 
 ## Testing
 
+```bash
+php artisan test
+```
+
 A Postman collection is in the `postman` folder. Import it into Postman and run the requests while the server is running.
 
 ## Notes
 
-- The task did not list allowed values for `category`, so the API accepts any text. The form offers four: general, support, product, bug.
-- The seeder creates 50 fake entries for testing.
+- The allowed categories are defined once in `app/Enums/FeedbackCategory.php`. The frontend loads them from `/api/feedback/categories`, so adding a category only needs a change in the enum.
+- `php artisan db:seed` (or `migrate --seed`) creates 50 fake feedback entries.

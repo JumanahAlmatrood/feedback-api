@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\FeedbackCategory;
 use App\Models\Feedback;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,11 +18,11 @@ class FeedbackFactory extends Factory
      */
     public function definition(): array
     {
-            return [
+        return [
             'name' => fake()->name(),
             'email' => fake()->safeEmail(),
             'rating' => fake()->numberBetween(1, 5),
-            'category' => fake()->randomElement(['general', 'support', 'product', 'bug']),
+            'category' => fake()->randomElement(FeedbackCategory::cases()),
             'comment' => fake()->optional()->sentence(),
         ];
     }
