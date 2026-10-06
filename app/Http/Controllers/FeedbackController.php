@@ -51,6 +51,38 @@ class FeedbackController extends Controller
             'by_category' => $categories,
         ]);
     }
+        public function export()
+    {
+        return response()->streamDownload(function () {
+            $output = fopen('php://output', 'w');
+
+            // BOM so Excel reads Arabic text correctly.
+            fwrite($output, "\xEF\xBB\xBF");
+
+            fputcsv($output, ['id', 'name', 'rating', 'category', 'comment', 'created_at'], escape: '');
+
+            Feedback::query()->lazyById()->each(function (Feedback $feedback) use ($output) {
+                fputcsv($output, [
+                    $feedback->id,
+                    $this->csvSafe($feedback->name),
+                    $feedback->rating,
+                    $feedback->category->value,
+                    $this->csvSafe($feedback->comment ?? ''),
+                    $feedback->created_at->toDateTimeString(),
+                ], escape: '');
+            });
+
+            fclose($output);
+        }, 'feedback.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Stop spreadsheet apps from running a cell as a formula.
+     */
+    private function csvSafe(string $value): string
+    {
+        return preg_match('/^[=+\-@\t\r]/', $value) ? "'".$value : $value;
+    }
 
     public function store(StoreFeedbackRequest $request)
     {

@@ -10,7 +10,7 @@ Route::get('/user', function (Request $request) {
 
 Route::get('feedback/stats', [FeedbackController::class, 'stats']);
 Route::get('feedback/categories', [FeedbackController::class, 'categories']);
-
+Route::get('feedback/export', [FeedbackController::class, 'export'])->middleware('throttle:10,1');
 Route::post('feedback', [FeedbackController::class, 'store'])->middleware('throttle:10,1');
 
 Route::apiResource('feedback', FeedbackController::class)->except(['store', 'update']);

@@ -206,6 +206,44 @@ class FeedbackApiTest extends TestCase
             ->assertOk()
             ->assertExactJson(['general', 'support', 'product', 'bug']);
     }
+        // ---------- GET /api/feedback/export ----------
+
+    public function test_feedback_can_be_exported_as_csv(): void
+    {
+        Feedback::factory()->create([
+            'name' => 'Noura',
+            'email' => 'noura@example.com',
+            'rating' => 5,
+            'category' => 'bug',
+            'comment' => 'Excellent',
+        ]);
+
+        $response = $this->get('/api/feedback/export')
+            ->assertOk()
+            ->assertDownload('feedback.csv');
+
+        $this->assertStringStartsWith('text/csv', $response->headers->get('Content-Type'));
+
+        $csv = $response->streamedContent();
+
+        $this->assertStringContainsString('id,name,rating,category,comment,created_at', $csv);
+        $this->assertStringContainsString(',Noura,5,bug,Excellent,', $csv);
+        $this->assertStringNotContainsString('noura@example.com', $csv);
+    }
+
+    public function test_csv_export_neutralises_spreadsheet_formulas(): void
+    {
+        Feedback::factory()->create([
+            'name' => '=HYPERLINK("http://evil.test")',
+            'comment' => '+1+1',
+        ]);
+
+        $csv = $this->get('/api/feedback/export')->streamedContent();
+
+        $this->assertStringContainsString("'=HYPERLINK", $csv);
+        $this->assertStringContainsString("'+1+1", $csv);
+    }
+    
     // ---------- Malicious input ----------
 
     public function test_script_tags_are_stored_and_returned_as_plain_text(): void
