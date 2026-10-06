@@ -3,21 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FeedbackCategory;
+use App\Http\Requests\ListFeedbackRequest;
+use App\Http\Requests\StoreFeedbackRequest;
 use App\Models\Feedback;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class FeedbackController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function index(ListFeedbackRequest $request)
     {
-        $filters = $request->validate([
-            'category' => ['nullable', Rule::enum(FeedbackCategory::class)],
-            'rating' => 'nullable|integer|between:1,5',
-        ]);
+        $filters = $request->validated();
 
         return Feedback::query()
             ->when($filters['category'] ?? null, fn ($query, $category) => $query->where('category', $category))
@@ -58,43 +52,18 @@ class FeedbackController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreFeedbackRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|string|email:rfc|max:254',
-            'rating' => 'required|integer|between:1,5',
-            'category' => ['required', Rule::enum(FeedbackCategory::class)],
-            'comment' => 'nullable|string|max:1000',
-        ]);
-
-        $feedback = Feedback::create($data);
+        $feedback = Feedback::create($request->validated());
 
         return response()->json($feedback, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Feedback $feedback)
     {
         return $feedback;
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, Feedback $feedback)
-    // {
-    //
-    // }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Feedback $feedback)
     {
         $feedback->delete();
