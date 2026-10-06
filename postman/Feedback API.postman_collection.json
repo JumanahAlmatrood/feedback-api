@@ -101,6 +101,55 @@
     {
       "name": "Delete feedback",
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "YOUR_TOKEN",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/feedback/20",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "feedback",
+            "20"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete feedback (no token)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "YOUR_TOKEN",
+              "type": "string"
+            }
+          ]
+        },
         "method": "DELETE",
         "header": [
           {
