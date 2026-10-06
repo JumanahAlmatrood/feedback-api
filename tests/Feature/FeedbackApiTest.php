@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\Feedback;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class FeedbackApiTest extends TestCase
@@ -170,6 +172,7 @@ class FeedbackApiTest extends TestCase
 
     public function test_feedback_can_be_deleted(): void
     {
+        Sanctum::actingAs(User::factory()->create());
         $feedback = Feedback::factory()->create();
 
         $this->deleteJson("/api/feedback/{$feedback->id}")->assertNoContent();
@@ -179,7 +182,18 @@ class FeedbackApiTest extends TestCase
 
     public function test_deleting_missing_feedback_returns_not_found(): void
     {
+        Sanctum::actingAs(User::factory()->create());
+
         $this->deleteJson('/api/feedback/999')->assertNotFound();
+    }
+
+    public function test_guests_cannot_delete_feedback(): void
+    {
+        $feedback = Feedback::factory()->create();
+
+        $this->deleteJson("/api/feedback/{$feedback->id}")->assertUnauthorized();
+
+        $this->assertDatabaseHas('feedback', ['id' => $feedback->id]);
     }
 
     // ---------- GET /api/feedback/stats and /categories ----------
@@ -210,6 +224,7 @@ class FeedbackApiTest extends TestCase
 
     public function test_feedback_can_be_exported_as_csv(): void
     {
+        Sanctum::actingAs(User::factory()->create());
         Feedback::factory()->create([
             'name' => 'Noura',
             'email' => 'noura@example.com',
@@ -233,6 +248,7 @@ class FeedbackApiTest extends TestCase
 
     public function test_csv_export_neutralises_spreadsheet_formulas(): void
     {
+        Sanctum::actingAs(User::factory()->create());
         Feedback::factory()->create([
             'name' => '=HYPERLINK("http://evil.test")',
             'comment' => '+1+1',
@@ -242,6 +258,11 @@ class FeedbackApiTest extends TestCase
 
         $this->assertStringContainsString("'=HYPERLINK", $csv);
         $this->assertStringContainsString("'+1+1", $csv);
+    }
+
+    public function test_guests_cannot_export_feedback(): void
+    {
+        $this->getJson('/api/feedback/export')->assertUnauthorized();
     }
 
     // ---------- Malicious input ----------
