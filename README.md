@@ -34,6 +34,7 @@ The API runs at `http://127.0.0.1:8000`.
 | GET | `/api/feedback/stats` | Total count, average rating, rating distribution, and count per category |
 | GET | `/api/feedback/{id}` | Get a single feedback entry |
 | DELETE | `/api/feedback/{id}` | Delete a feedback entry |
+| GET | `/api/feedback/export` | Download all feedback as a CSV file (no emails, limited to 10 requests per minute) |
 
 ### POST body
 
